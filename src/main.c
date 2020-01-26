@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -6,22 +7,19 @@
 
 #define N 3 /* NOTE: Number of threads. Be careful! */
 
-const unsigned short int T = 10;
-const unsigned short int M = 10;
+const uint8_t T = (uint8_t)1;
+const uint8_t M = (uint8_t)10;
 
 pthread_mutex_t LOCK;
-unsigned short int K;
 
-void *do_process() {
+void *do_process(void *arg) {
     sleep(T);
     pthread_mutex_lock(&LOCK);
-    int i = 0;
-    while (i < M) {
-        printf("%d", K);
-        i++;
+    uint8_t k = *(uint8_t *)arg;
+    for (uint8_t i = 0; i < M; ++i) {
+        printf("%d", k);
     }
     printf("\t... done!\n");
-    K++;
     pthread_mutex_unlock(&LOCK);
     return NULL;
 }
@@ -32,11 +30,14 @@ int main(void) {
         printf("Mutex initialization failed.\n");
         return 1;
     }
-    K = 0;
-    for (int i = 0; i < N; ++i) {
-        pthread_create(&threads[i], NULL, do_process, NULL);
+    uint8_t memory[N];
+    for (uint8_t i = 0; i < N; ++i) {
+        memory[i] = i;
     }
-    for (int i = 0; i < N; ++i) {
+    for (uint8_t i = 0; i < N; ++i) {
+        pthread_create(&threads[i], NULL, do_process, &memory[i]);
+    }
+    for (uint8_t i = 0; i < N; ++i) {
         pthread_join(threads[i], NULL);
     }
     return 0;
