@@ -9,4 +9,8 @@ fi
 
 export WD=$PWD
 
+if [ ! -d "$WD/bin" ]; then
+    mkdir "$WD/bin"
+fi
+
 alias clang-format="clang-format -verbose -i"
