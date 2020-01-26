@@ -9,8 +9,10 @@ fi
 
 export WD=$PWD
 
-if [ ! -d "$WD/bin" ]; then
-    mkdir "$WD/bin"
-fi
+for x in "$WD/bin" "$WD/build"; do
+    if [ ! -d "$x" ]; then
+        mkdir "$x"
+    fi
+done
 
 alias clang-format="clang-format -verbose -i"

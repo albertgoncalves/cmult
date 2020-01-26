@@ -1,15 +1,38 @@
 #!/usr/bin/env bash
 
-set -e
+set -eu
 
-cd "$WD" || exit 1
-args=(
-    -Werror -Wall -Wextra -Wconversion -Wunused -Wunused-function \
-    -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
-    -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
-    -Wredundant-decls -Wmissing-prototypes -Wnested-externs -Wpointer-arith \
-    -Wshadow -Wstrict-prototypes -Wwrite-strings -Wswitch \
-    -Wmissing-field-initializers
+export TARGET="$WD/bin/main"
+
+now () {
+    date +%s.%N
+}
+
+build_all () {
+    args=(
+        -Werror -Wall -Wextra -Wconversion -Wunused -Wunused-function \
+        -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
+        -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
+        -Wredundant-decls -Wmissing-prototypes -Wnested-externs \
+        -Wpointer-arith -Wshadow -Wstrict-prototypes -Wwrite-strings -Wswitch \
+        -Wmissing-field-initializers
+    )
+    clang-format -i -verbose "$WD/src"/*
+    cp "$WD/src"/* "$WD/build"
+    cd "$WD/build" || exit 1
+    echo "Compiling lib.c"
+    cc "${args[@]}" -c lib.c
+    echo "Compiling main.c"
+    cc "${args[@]}" -c main.c
+    echo "Linking..."
+    cc "${args[@]}" -lpthread main.o lib.o -o "$TARGET"
+}
+
+(
+    start=$(now)
+    build_all
+    python3 -c "print(\"Done! ({:.3f}s)\n\".format($(now) - ${start}))"
 )
-time cc "${args[@]}" -lpthread src/main.c -o bin/main
-time bin/main
+
+echo "$ $TARGET"
+"$TARGET"
