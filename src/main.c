@@ -4,13 +4,13 @@
 
 #include "main.h"
 
-#define N 10
+#define N 3 /* NOTE: Number of threads. Be careful! */
 
-const unsigned short int T = 2;
+const unsigned short int T = 10;
 const unsigned short int M = 10;
 
 pthread_mutex_t LOCK;
-int K;
+unsigned short int K;
 
 void *do_process() {
     sleep(T);
