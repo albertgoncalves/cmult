@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$WD" || exit 1
+args=(
+    -Werror -Wall -Wextra -Wconversion -Wunused -Wunused-function \
+    -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
+    -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
+    -Wredundant-decls -Wmissing-prototypes -Wnested-externs -Wpointer-arith \
+    -Wshadow -Wstrict-prototypes -Wwrite-strings -Wswitch \
+    -Wmissing-field-initializers
+)
+time cc "${args[@]}" -lpthread src/main.c -o bin/main
+time bin/main
