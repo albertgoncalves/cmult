@@ -11,7 +11,7 @@ now () {
 build_all () {
     flags=(
         "-std=c99" \
-        -Werror -Wall -Wextra -Wconversion -Wunused -Wunused-function \
+        -Werror -Wall -Wextra -Wsign-conversion -Wunused -Wunused-function \
         -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
         -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
         -Wredundant-decls -Wmissing-prototypes -Wnested-externs \

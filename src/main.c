@@ -1,5 +1,8 @@
+#define _DEFAULT_SOURCE
+
 #include <assert.h>
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,7 +22,7 @@ void worker(void* arg) {
     uint8_t copy = *(uint8_t*)arg;
     *(uint8_t*)arg += 100;
     pthread_mutex_lock(&MUTEX);
-    printf("address: %p\tin: %hhu\tout: %hhu\n", pthread_self(), copy,
+    printf("address: %ld\tin: %hhu\tout: %hhu\n", pthread_self(), copy,
            *(uint8_t*)arg);
     pthread_mutex_unlock(&MUTEX);
 }
