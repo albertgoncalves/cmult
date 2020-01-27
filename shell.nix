@@ -1,11 +1,23 @@
 with import <nixpkgs> {};
-mkShell {
-    buildInputs = [
+let
+    shared = [
         clang-tools
         python3
         shellcheck
     ];
-    shellHook = ''
+    hook = ''
         . .shellhook
     '';
+in
+{
+    darwin = mkShell {
+        buildInputs = shared;
+        shellHook = hook;
+    };
+    linux = mkShell {
+        buildInputs = [
+        valgrind
+        ] ++ shared;
+        shellHook = hook;
+    };
 }
