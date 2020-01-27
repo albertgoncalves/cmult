@@ -10,7 +10,7 @@ now () {
 
 build_all () {
     flags=(
-        -std=c99 \
+        "-std=c99" \
         -Werror -Wall -Wextra -Wconversion -Wunused -Wunused-function \
         -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
         -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
@@ -18,14 +18,18 @@ build_all () {
         -Wpointer-arith -Wshadow -Wstrict-prototypes -Wwrite-strings -Wswitch \
         -Wmissing-field-initializers
     )
+    srcs=(
+        lib
+        main
+    )
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
-    echo "Compiling lib.c"
-    cc "${flags[@]}" -c lib.c
-    echo "Compiling main.c"
-    cc "${flags[@]}" -c main.c
+    for x in "${srcs[@]/%/.c}"; do
+        echo "Compiling $x"
+        cc "${flags[@]}" -c "$x"
+    done
     echo "Linking..."
-    cc "${flags[@]}" -lpthread main.o lib.o -o "$TARGET"
+    cc "${flags[@]}" -lpthread "${srcs[@]/%/.o}" -o "$TARGET"
 }
 
 (
