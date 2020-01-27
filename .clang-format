@@ -1,0 +1,9 @@
+IndentWidth: 4
+ColumnLimit: 79
+SpacesInContainerLiterals: false
+PointerAlignment: Left
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlines: Right
+AlignOperands: true
+AlignTrailingComments: true
