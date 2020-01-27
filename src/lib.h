@@ -10,7 +10,7 @@ typedef struct tpool      tpool_t;
 
 tpool_t* tpool_create(size_t n);
 void     tpool_destroy(tpool_t* pool);
-bool     tpool_add_work(tpool_t* pool, thread_func_t func, void* arg);
+bool     tpool_work_push(tpool_t* pool, thread_func_t func, void* arg);
 void     tpool_wait(tpool_t* pool);
 
 #endif

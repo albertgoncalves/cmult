@@ -8,18 +8,18 @@
 
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
-#define N_ITEMS 10
+#define N_ITEMS 30
 
 static const uint8_t   N_THREADS = 3;
 static pthread_mutex_t MUTEX;
 
 void worker(void*);
 void worker(void* arg) {
-    sleep(1);
+    usleep(250000);
     uint8_t copy = *(uint8_t*)arg;
     *(uint8_t*)arg += 100;
     pthread_mutex_lock(&MUTEX);
-    printf("address: %p | in: %hhu | out: %hhu\n", pthread_self(), copy,
+    printf("address: %p\tin: %hhu\tout: %hhu\n", pthread_self(), copy,
            *(uint8_t*)arg);
     pthread_mutex_unlock(&MUTEX);
 }
@@ -32,7 +32,7 @@ int main(void) {
         data[i] = i;
     }
     for (uint8_t i = 0; i < N_ITEMS; ++i) {
-        tpool_add_work(pool, worker, &data[i]);
+        tpool_work_push(pool, worker, &data[i]);
     }
     tpool_wait(pool);
     for (uint8_t i = 0; i < N_ITEMS; ++i) {
