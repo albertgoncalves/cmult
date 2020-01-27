@@ -63,8 +63,7 @@ static tpool_work_t* tpool_work_pop(tpool_t* pool) {
 }
 
 static void* tpool_worker(void* arg) {
-    tpool_work_t* work;
-    tpool_t*      pool = arg;
+    tpool_t* pool = arg;
     for (;;) {
         ASSERT_LOCK(pool->work_mutex);
         while ((pool->work_first == NULL) && (!pool->stop)) {
@@ -82,7 +81,7 @@ static void* tpool_worker(void* arg) {
              */
             break;
         }
-        work = tpool_work_pop(pool);
+        tpool_work_t* work = tpool_work_pop(pool);
         pool->working_cnt++;
         ASSERT_UNLOCK(pool->work_mutex);
         if (work != NULL) {
@@ -107,16 +106,17 @@ tpool_t* tpool_create(size_t n) {
     if (n == 0) {
         n = DEFAULT_N_THREADS;
     }
-    tpool_t* pool;
-    pool             = calloc(1, sizeof(*pool));
-    pool->thread_cnt = n;
-    assert(pthread_mutex_init(&(pool->work_mutex), NULL) == 0);
-    assert(pthread_cond_init(&(pool->work_cond), NULL) == 0);
-    assert(pthread_cond_init(&(pool->working_cond), NULL) == 0);
+    tpool_t* pool    = malloc(sizeof(*pool));
     pool->work_first = NULL;
     pool->work_last  = NULL;
-    pthread_t thread;
+    assert(pthread_mutex_init(&(pool->work_mutex), NULL) == 0);
+    assert(pthread_cond_init(&(pool->work_cond), NULL) == 0);
+    pool->working_cnt = 0;
+    pool->thread_cnt  = n;
+    assert(pthread_cond_init(&(pool->working_cond), NULL) == 0);
+    pool->stop = false;
     for (size_t i = 0; i < n; ++i) {
+        pthread_t thread;
         assert(pthread_create(&thread, NULL, tpool_worker, pool) == 0);
         assert(pthread_detach(thread) == 0);
     }
@@ -127,12 +127,10 @@ void tpool_destroy(tpool_t* pool) {
     if (pool == NULL) {
         return;
     }
-    tpool_work_t* work_current;
-    tpool_work_t* work_next;
     ASSERT_LOCK(pool->work_mutex);
-    work_current = pool->work_first;
+    tpool_work_t* work_current = pool->work_first;
     while (work_current != NULL) {
-        work_next = work_current->next;
+        tpool_work_t* work_next = work_current->next;
         tpool_work_destroy(work_current);
         work_current = work_next;
     }
