@@ -9,7 +9,8 @@ now () {
 }
 
 build_all () {
-    args=(
+    flags=(
+        -std=c99 \
         -Werror -Wall -Wextra -Wconversion -Wunused -Wunused-function \
         -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
         -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
@@ -20,11 +21,11 @@ build_all () {
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
     echo "Compiling lib.c"
-    cc "${args[@]}" -c lib.c
+    cc "${flags[@]}" -c lib.c
     echo "Compiling main.c"
-    cc "${args[@]}" -c main.c
+    cc "${flags[@]}" -c main.c
     echo "Linking..."
-    cc "${args[@]}" -lpthread main.o lib.o -o "$TARGET"
+    cc "${flags[@]}" -lpthread main.o lib.o -o "$TARGET"
 }
 
 (
