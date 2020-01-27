@@ -15,17 +15,6 @@ struct tpool_work {
     struct tpool_work* next;
 };
 
-struct tpool {
-    tpool_work_t*   work_first;
-    tpool_work_t*   work_last;
-    pthread_mutex_t work_mutex;
-    pthread_cond_t  work_cond;
-    pthread_cond_t  working_cond;
-    size_t          working_cnt;
-    size_t          thread_cnt;
-    bool            stop;
-};
-
 static tpool_work_t* tpool_work_create(thread_func_t func, void* arg) {
     if (func == NULL) {
         return NULL;
@@ -102,11 +91,10 @@ static void* tpool_worker(void* arg) {
     return NULL;
 }
 
-tpool_t* tpool_create(size_t n) {
+void tpool_set(tpool_t* pool, size_t n) {
     if (n == 0) {
         n = DEFAULT_N_THREADS;
     }
-    tpool_t* pool    = malloc(sizeof(*pool));
     pool->work_first = NULL;
     pool->work_last  = NULL;
     assert(pthread_mutex_init(&(pool->work_mutex), NULL) == 0);
@@ -120,10 +108,9 @@ tpool_t* tpool_create(size_t n) {
         assert(pthread_create(&thread, NULL, tpool_worker, pool) == 0);
         assert(pthread_detach(thread) == 0);
     }
-    return pool;
 }
 
-void tpool_destroy(tpool_t* pool) {
+void tpool_clear(tpool_t* pool) {
     if (pool == NULL) {
         return;
     }
@@ -141,7 +128,6 @@ void tpool_destroy(tpool_t* pool) {
     assert(pthread_mutex_destroy(&(pool->work_mutex)) == 0);
     assert(pthread_cond_destroy(&(pool->work_cond)) == 0);
     assert(pthread_cond_destroy(&(pool->working_cond)) == 0);
-    free(pool);
 }
 
 bool tpool_work_push(tpool_t* pool, thread_func_t func, void* arg) {

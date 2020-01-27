@@ -26,18 +26,22 @@ void worker(void* arg) {
 
 int main(void) {
     assert(pthread_mutex_init(&MUTEX, NULL) == 0);
-    tpool_t* pool          = tpool_create(N_THREADS);
-    uint8_t  data[N_ITEMS] = {0};
+    tpool_t pool;
+    tpool_set(&pool, N_THREADS);
+    uint8_t data[N_ITEMS] = {0};
     for (uint8_t i = 0; i < N_ITEMS; ++i) {
         data[i] = i;
     }
     for (uint8_t i = 0; i < N_ITEMS; ++i) {
-        tpool_work_push(pool, worker, &data[i]);
+        tpool_work_push(&pool, worker, &data[i]);
     }
-    tpool_wait(pool);
+    usleep(10); /* NOTE: The pool sometimes doesn't kick off. This tiny pause
+                 * seems to help... but, why? What is going on here?
+                 */
+    tpool_wait(&pool);
     for (uint8_t i = 0; i < N_ITEMS; ++i) {
         printf("%hhu\n", data[i]);
     }
-    tpool_destroy(pool);
-    return 0;
+    tpool_clear(&pool);
+    return EXIT_SUCCESS;
 }
