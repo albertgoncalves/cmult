@@ -18,8 +18,7 @@
 static const uint8_t   N_THREADS = 3;
 static pthread_mutex_t MUTEX;
 
-void worker(void*);
-void worker(void* arg) {
+static void worker(void* arg) {
     usleep(250000);
     uint8_t copy = *(uint8_t*)arg;
     *(uint8_t*)arg += 100;
