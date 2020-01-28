@@ -1,4 +1,6 @@
+#if __linux__
 #define _DEFAULT_SOURCE
+#endif
 
 #include <assert.h>
 #include <pthread.h>
