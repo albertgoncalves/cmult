@@ -65,9 +65,6 @@ static void* tpool_worker(void* arg) {
                                      &(pool->work_mutex)) == 0);
         }
         if (pool->stop) {
-            /* NOTE: This provides top-level control; if this is `true` all
-             * threads will `break` before beginning any new work.
-             */
             break;
         }
         tpool_work_t* work = tpool_work_pop(pool);
