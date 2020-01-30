@@ -3,7 +3,7 @@
 
 #include "lib.h"
 
-#define LOCK_OR_EXIT(mutex) EXIT_IF(pthread_mutex_lock(&mutex) != 0);
+#define LOCK_OR_EXIT(mutex)   EXIT_IF(pthread_mutex_lock(&mutex) != 0);
 #define UNLOCK_OR_EXIT(mutex) EXIT_IF(pthread_mutex_unlock(&mutex) != 0);
 
 static const size_t DEFAULT_N_THREADS = 2;

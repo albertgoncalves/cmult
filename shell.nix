@@ -1,7 +1,7 @@
 with import <nixpkgs> {};
 let
     shared = [
-        clang-tools
+        clang_9
         python3
         shellcheck
     ];
@@ -10,11 +10,13 @@ let
     '';
 in
 {
-    darwin = mkShell {
+    darwin = stdenvNoCC.mkDerivation {
+        name = "_";
         buildInputs = shared;
         shellHook = hook;
     };
-    linux = mkShell {
+    linux = stdenvNoCC.mkDerivation {
+        name = "_";
         buildInputs = [
             valgrind
         ] ++ shared;

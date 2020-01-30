@@ -1,5 +1,5 @@
 #if __linux__
-#define _DEFAULT_SOURCE
+    #define _DEFAULT_SOURCE
 #endif
 
 #include <pthread.h>

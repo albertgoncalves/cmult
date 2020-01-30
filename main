@@ -11,12 +11,12 @@ now () {
 build_all () {
     flags=(
         "-std=c99" \
-        -Werror -Wall -Wextra -Wsign-conversion -Wunused -Wunused-function \
-        -Wunused-label -Wunused-macros -Wunused-parameter -Wunused-value \
-        -Wunused-variable -Wcast-align -Wcast-qual -Wmissing-declarations \
-        -Wredundant-decls -Wmissing-prototypes -Wnested-externs \
-        -Wpointer-arith -Wshadow -Wstrict-prototypes -Wwrite-strings -Wswitch \
-        -Wmissing-field-initializers
+        -Werror -Wall -Wextra -Wconversion -Wsign-conversion -Wunused \
+        -Wunused-function -Wunused-label -Wunused-macros -Wunused-parameter \
+        -Wunused-value -Wunused-variable -Wcast-align -Wcast-qual \
+        -Wmissing-declarations -Wredundant-decls -Wmissing-prototypes \
+        -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes \
+        -Wwrite-strings -Wswitch -Wmissing-field-initializers
     )
     srcs=(
         lib

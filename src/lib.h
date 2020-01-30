@@ -4,16 +4,17 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define BOLD_RED "\033[1;31m"
-#define BOLD "\033[1m"
-#define CLOSE "\033[0m"
+#define BOLD_RED       "\033[1;31m"
+#define BOLD           "\033[1m"
+#define BOLD_UNDERLINE "\033[1;4m"
+#define CLOSE          "\033[0m"
 
-#define EXIT_IF(condition)                                                   \
-    if (condition) {                                                         \
-        fprintf(stderr, "%sError%s: <%s%s%s>.%s%s%s(), ln.%s%d%s", BOLD_RED, \
-                CLOSE, BOLD, __FILE__, CLOSE, BOLD, __func__, CLOSE, BOLD,   \
-                __LINE__, CLOSE);                                            \
-        exit(1);                                                             \
+#define EXIT_IF(condition)                                                \
+    if (condition) {                                                      \
+        fprintf(stderr, "<%s%s%s>.%s%s%s() @%sline %d%s %sError%s", BOLD, \
+                __FILE__, CLOSE, BOLD, __func__, CLOSE, BOLD_UNDERLINE,   \
+                __LINE__, CLOSE, BOLD_RED, CLOSE);                        \
+        exit(1);                                                          \
     }
 
 typedef struct tpool_work tpool_work_t;
