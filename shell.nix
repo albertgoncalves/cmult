@@ -16,7 +16,7 @@ in
     };
     linux = mkShell {
         buildInputs = [
-        valgrind
+            valgrind
         ] ++ shared;
         shellHook = hook;
     };
