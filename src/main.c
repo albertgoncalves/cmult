@@ -12,7 +12,7 @@
 
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
-#define N_ITEMS 300
+#define N_ITEMS 10
 
 static const uint16_t  N_THREADS = 3;
 static pthread_mutex_t MUTEX;
