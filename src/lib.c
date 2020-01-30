@@ -1,11 +1,10 @@
-#include <assert.h>
 #include <pthread.h>
 #include <stdlib.h>
 
 #include "lib.h"
 
-#define ASSERT_LOCK(mutex) assert(pthread_mutex_lock(&mutex) == 0);
-#define ASSERT_UNLOCK(mutex) assert(pthread_mutex_unlock(&mutex) == 0);
+#define LOCK(mutex) EXIT_IF(pthread_mutex_lock(&mutex) != 0);
+#define UNLOCK(mutex) EXIT_IF(pthread_mutex_unlock(&mutex) != 0);
 
 static const size_t DEFAULT_N_THREADS = 2;
 
@@ -20,7 +19,7 @@ static tpool_work_t* tpool_work_create(thread_func_t func, void* arg) {
         return NULL;
     }
     tpool_work_t* work = malloc(sizeof(tpool_work_t));
-    assert(work != NULL);
+    EXIT_IF(work == NULL);
     work->func = func;
     work->arg  = arg;
     work->next = NULL;
@@ -54,39 +53,39 @@ static tpool_work_t* tpool_work_dequeue(tpool_t* pool) {
 static void* tpool_worker(void* arg) {
     tpool_t* pool = arg;
     for (;;) {
-        ASSERT_LOCK(pool->mutex);
+        LOCK(pool->mutex);
         while ((pool->work_first == NULL) && (!pool->stop)) {
             /* NOTE: `pthread_cond_wait` does a few things for us:
              *   1. Block process until work arrives.
              *   2. Release `pool->mutex` so other workers can acquire it.
              *   3. Once work arrives, collect re-lock `pool->mutex`.
              */
-            assert(pthread_cond_wait(&(pool->new_work_cond), &(pool->mutex)) ==
-                   0);
+            EXIT_IF(pthread_cond_wait(&(pool->new_work_cond),
+                                      &(pool->mutex)) != 0);
         }
         if (pool->stop) {
             break;
         }
         tpool_work_t* work = tpool_work_dequeue(pool);
         pool->working_cnt++;
-        ASSERT_UNLOCK(pool->mutex);
+        UNLOCK(pool->mutex);
         if (work != NULL) {
             work->func(work->arg);
             tpool_work_destroy(work);
         }
-        ASSERT_LOCK(pool->mutex);
+        LOCK(pool->mutex);
         pool->working_cnt--;
         if ((!pool->stop) && (pool->working_cnt == 0) &&
             (pool->work_first == NULL)) {
-            /* NOTE: Signal that given thread is no longer working. */
-            assert(pthread_cond_signal(&(pool->working_cond)) == 0);
+            /* NOTE: Send signal that given thread is no longer working. */
+            EXIT_IF(pthread_cond_signal(&(pool->working_cond)) != 0);
         }
-        ASSERT_UNLOCK(pool->mutex);
+        UNLOCK(pool->mutex);
     }
     pool->thread_cnt--;
-    /* NOTE: Signal that the given thread has exited its work loop. */
-    assert(pthread_cond_signal(&(pool->working_cond)) == 0);
-    ASSERT_UNLOCK(pool->mutex);
+    /* NOTE: Send signal that the given thread has exited its work loop. */
+    EXIT_IF(pthread_cond_signal(&(pool->working_cond)) != 0);
+    UNLOCK(pool->mutex);
     return NULL;
 }
 
@@ -96,16 +95,16 @@ void tpool_set(tpool_t* pool, size_t n) {
     }
     pool->work_first = NULL;
     pool->work_last  = NULL;
-    assert(pthread_mutex_init(&(pool->mutex), NULL) == 0);
-    assert(pthread_cond_init(&(pool->new_work_cond), NULL) == 0);
-    assert(pthread_cond_init(&(pool->working_cond), NULL) == 0);
+    EXIT_IF(pthread_mutex_init(&(pool->mutex), NULL) != 0);
+    EXIT_IF(pthread_cond_init(&(pool->new_work_cond), NULL) != 0);
+    EXIT_IF(pthread_cond_init(&(pool->working_cond), NULL) != 0);
     pool->working_cnt = 0;
     pool->thread_cnt  = n;
     pool->stop        = false;
     for (size_t i = 0; i < n; ++i) {
         pthread_t thread;
-        assert(pthread_create(&thread, NULL, tpool_worker, pool) == 0);
-        assert(pthread_detach(thread) == 0);
+        EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
+        EXIT_IF(pthread_detach(thread) != 0);
     }
 }
 
@@ -113,7 +112,7 @@ void tpool_clear(tpool_t* pool) {
     if (pool == NULL) {
         return;
     }
-    ASSERT_LOCK(pool->mutex);
+    LOCK(pool->mutex);
     tpool_work_t* work_current = pool->work_first;
     while (work_current != NULL) {
         tpool_work_t* work_next = work_current->next;
@@ -121,12 +120,12 @@ void tpool_clear(tpool_t* pool) {
         work_current = work_next;
     }
     pool->stop = true;
-    assert(pthread_cond_broadcast(&(pool->new_work_cond)) == 0);
-    ASSERT_UNLOCK(pool->mutex);
+    EXIT_IF(pthread_cond_broadcast(&(pool->new_work_cond)) != 0);
+    UNLOCK(pool->mutex);
     tpool_wait(pool);
-    assert(pthread_mutex_destroy(&(pool->mutex)) == 0);
-    assert(pthread_cond_destroy(&(pool->new_work_cond)) == 0);
-    assert(pthread_cond_destroy(&(pool->working_cond)) == 0);
+    EXIT_IF(pthread_mutex_destroy(&(pool->mutex)) != 0);
+    EXIT_IF(pthread_cond_destroy(&(pool->new_work_cond)) != 0);
+    EXIT_IF(pthread_cond_destroy(&(pool->working_cond)) != 0);
 }
 
 bool tpool_work_enqueue(tpool_t* pool, thread_func_t func, void* arg) {
@@ -137,7 +136,7 @@ bool tpool_work_enqueue(tpool_t* pool, thread_func_t func, void* arg) {
     if (work == NULL) {
         return false;
     }
-    ASSERT_LOCK(pool->mutex);
+    LOCK(pool->mutex);
     if (pool->work_first == NULL) {
         pool->work_first = work;
         pool->work_last  = pool->work_first;
@@ -145,8 +144,8 @@ bool tpool_work_enqueue(tpool_t* pool, thread_func_t func, void* arg) {
         pool->work_last->next = work;
         pool->work_last       = pool->work_last->next;
     }
-    assert(pthread_cond_broadcast(&(pool->new_work_cond)) == 0);
-    ASSERT_UNLOCK(pool->mutex);
+    EXIT_IF(pthread_cond_broadcast(&(pool->new_work_cond)) != 0);
+    UNLOCK(pool->mutex);
     return true;
 }
 
@@ -154,13 +153,13 @@ void tpool_wait(tpool_t* pool) {
     if (pool == NULL) {
         return;
     }
-    ASSERT_LOCK(pool->mutex);
+    LOCK(pool->mutex);
     while (((!pool->stop) && (pool->working_cnt != 0)) ||
            ((pool->stop) && (pool->thread_cnt != 0))) {
         /* NOTE: Either at least one thread is still working, or at least one
          * thread has yet to return from its work loop.
          */
-        assert(pthread_cond_wait(&(pool->working_cond), &(pool->mutex)) == 0);
+        EXIT_IF(pthread_cond_wait(&(pool->working_cond), &(pool->mutex)) != 0);
     }
-    ASSERT_UNLOCK(pool->mutex);
+    UNLOCK(pool->mutex);
 }

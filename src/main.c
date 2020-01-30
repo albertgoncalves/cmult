@@ -2,7 +2,6 @@
 #define _DEFAULT_SOURCE
 #endif
 
-#include <assert.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -29,7 +28,7 @@ static void worker(void* arg) {
 }
 
 int main(void) {
-    assert(pthread_mutex_init(&MUTEX, NULL) == 0);
+    EXIT_IF(pthread_mutex_init(&MUTEX, NULL) == 0);
     tpool_t pool;
     tpool_set(&pool, N_THREADS);
     uint16_t data[N_ITEMS] = {0};

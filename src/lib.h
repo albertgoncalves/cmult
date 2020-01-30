@@ -2,6 +2,19 @@
 #define __LIB_H__
 
 #include <stdbool.h>
+#include <stdio.h>
+
+#define BOLD_RED "\033[1;31m"
+#define BOLD "\033[1m"
+#define CLOSE "\033[0m"
+
+#define EXIT_IF(condition)                                                   \
+    if (condition) {                                                         \
+        fprintf(stderr, "%sError%s: <%s%s%s>.%s%s%s(), ln.%s%d%s", BOLD_RED, \
+                CLOSE, BOLD, __FILE__, CLOSE, BOLD, __func__, CLOSE, BOLD,   \
+                __LINE__, CLOSE);                                            \
+        exit(1);                                                             \
+    }
 
 typedef struct tpool_work tpool_work_t;
 typedef struct tpool      tpool_t;
