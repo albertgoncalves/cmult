@@ -3,6 +3,7 @@
 #endif
 
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +31,13 @@ static void worker(void* arg) {
 int main(void) {
     EXIT_IF(pthread_mutex_init(&MUTEX, NULL) != 0);
     tpool_t pool;
-    tpool_set(&pool, N_THREADS);
+    EXIT_IF(!tpool_set(&pool, worker, N_THREADS));
     uint16_t data[N_ITEMS] = {0};
     for (size_t i = 0; i < N_ITEMS; ++i) {
         data[i] = (uint16_t)i;
     }
     for (size_t i = 0; i < N_ITEMS; ++i) {
-        EXIT_IF(!tpool_work_enqueue(&pool, worker, &data[i]))
+        EXIT_IF(!tpool_work_enqueue(&pool, &data[i]))
     }
     usleep(10); /* NOTE: The pool sometimes doesn't kick off. This tiny pause
                  * seems to help... but, why? What is going on here?

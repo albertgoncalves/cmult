@@ -9,18 +9,13 @@
 static const size_t DEFAULT_N_THREADS = 2;
 
 struct tpool_work {
-    thread_func_t      func;
     void*              arg;
     struct tpool_work* next;
 };
 
-static tpool_work_t* tpool_work_create(thread_func_t func, void* arg) {
-    if (func == NULL) {
-        return NULL;
-    }
+static tpool_work_t* tpool_work_create(void* arg) {
     tpool_work_t* work = malloc(sizeof(tpool_work_t));
     EXIT_IF(work == NULL);
-    work->func = func;
     work->arg  = arg;
     work->next = NULL;
     return work;
@@ -70,7 +65,7 @@ static void* tpool_worker(void* arg) {
         pool->working_cnt++;
         UNLOCK_OR_EXIT(pool->mutex);
         if (work != NULL) {
-            work->func(work->arg);
+            pool->func(work->arg);
             tpool_work_destroy(work);
         }
         LOCK_OR_EXIT(pool->mutex);
@@ -89,7 +84,10 @@ static void* tpool_worker(void* arg) {
     return NULL;
 }
 
-void tpool_set(tpool_t* pool, size_t n) {
+bool tpool_set(tpool_t* pool, thread_func_t func, size_t n) {
+    if (func == NULL) {
+        return false;
+    }
     if (n == 0) {
         n = DEFAULT_N_THREADS;
     }
@@ -100,12 +98,14 @@ void tpool_set(tpool_t* pool, size_t n) {
     EXIT_IF(pthread_cond_init(&(pool->working_cond), NULL) != 0);
     pool->working_cnt = 0;
     pool->thread_cnt  = n;
+    pool->func        = func;
     pool->stop        = false;
     for (size_t i = 0; i < n; ++i) {
         pthread_t thread;
         EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
         EXIT_IF(pthread_detach(thread) != 0);
     }
+    return true;
 }
 
 void tpool_clear(tpool_t* pool) {
@@ -128,11 +128,11 @@ void tpool_clear(tpool_t* pool) {
     EXIT_IF(pthread_cond_destroy(&(pool->working_cond)) != 0);
 }
 
-bool tpool_work_enqueue(tpool_t* pool, thread_func_t func, void* arg) {
+bool tpool_work_enqueue(tpool_t* pool, void* arg) {
     if (pool == NULL) {
         return false;
     }
-    tpool_work_t* work = tpool_work_create(func, arg);
+    tpool_work_t* work = tpool_work_create(arg);
     if (work == NULL) {
         return false;
     }
