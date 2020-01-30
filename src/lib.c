@@ -3,8 +3,8 @@
 
 #include "lib.h"
 
-#define LOCK(mutex) EXIT_IF(pthread_mutex_lock(&mutex) != 0);
-#define UNLOCK(mutex) EXIT_IF(pthread_mutex_unlock(&mutex) != 0);
+#define LOCK_OR_EXIT(mutex) EXIT_IF(pthread_mutex_lock(&mutex) != 0);
+#define UNLOCK_OR_EXIT(mutex) EXIT_IF(pthread_mutex_unlock(&mutex) != 0);
 
 static const size_t DEFAULT_N_THREADS = 2;
 
@@ -53,7 +53,7 @@ static tpool_work_t* tpool_work_dequeue(tpool_t* pool) {
 static void* tpool_worker(void* arg) {
     tpool_t* pool = arg;
     for (;;) {
-        LOCK(pool->mutex);
+        LOCK_OR_EXIT(pool->mutex);
         while ((pool->work_first == NULL) && (!pool->stop)) {
             /* NOTE: `pthread_cond_wait` does a few things for us:
              *   1. Block process until work arrives.
@@ -68,24 +68,24 @@ static void* tpool_worker(void* arg) {
         }
         tpool_work_t* work = tpool_work_dequeue(pool);
         pool->working_cnt++;
-        UNLOCK(pool->mutex);
+        UNLOCK_OR_EXIT(pool->mutex);
         if (work != NULL) {
             work->func(work->arg);
             tpool_work_destroy(work);
         }
-        LOCK(pool->mutex);
+        LOCK_OR_EXIT(pool->mutex);
         pool->working_cnt--;
         if ((!pool->stop) && (pool->working_cnt == 0) &&
             (pool->work_first == NULL)) {
             /* NOTE: Send signal that given thread is no longer working. */
             EXIT_IF(pthread_cond_signal(&(pool->working_cond)) != 0);
         }
-        UNLOCK(pool->mutex);
+        UNLOCK_OR_EXIT(pool->mutex);
     }
     pool->thread_cnt--;
     /* NOTE: Send signal that the given thread has exited its work loop. */
     EXIT_IF(pthread_cond_signal(&(pool->working_cond)) != 0);
-    UNLOCK(pool->mutex);
+    UNLOCK_OR_EXIT(pool->mutex);
     return NULL;
 }
 
@@ -112,7 +112,7 @@ void tpool_clear(tpool_t* pool) {
     if (pool == NULL) {
         return;
     }
-    LOCK(pool->mutex);
+    LOCK_OR_EXIT(pool->mutex);
     tpool_work_t* work_current = pool->work_first;
     while (work_current != NULL) {
         tpool_work_t* work_next = work_current->next;
@@ -121,7 +121,7 @@ void tpool_clear(tpool_t* pool) {
     }
     pool->stop = true;
     EXIT_IF(pthread_cond_broadcast(&(pool->new_work_cond)) != 0);
-    UNLOCK(pool->mutex);
+    UNLOCK_OR_EXIT(pool->mutex);
     tpool_wait(pool);
     EXIT_IF(pthread_mutex_destroy(&(pool->mutex)) != 0);
     EXIT_IF(pthread_cond_destroy(&(pool->new_work_cond)) != 0);
@@ -136,7 +136,7 @@ bool tpool_work_enqueue(tpool_t* pool, thread_func_t func, void* arg) {
     if (work == NULL) {
         return false;
     }
-    LOCK(pool->mutex);
+    LOCK_OR_EXIT(pool->mutex);
     if (pool->work_first == NULL) {
         pool->work_first = work;
         pool->work_last  = pool->work_first;
@@ -145,7 +145,7 @@ bool tpool_work_enqueue(tpool_t* pool, thread_func_t func, void* arg) {
         pool->work_last       = pool->work_last->next;
     }
     EXIT_IF(pthread_cond_broadcast(&(pool->new_work_cond)) != 0);
-    UNLOCK(pool->mutex);
+    UNLOCK_OR_EXIT(pool->mutex);
     return true;
 }
 
@@ -153,7 +153,7 @@ void tpool_wait(tpool_t* pool) {
     if (pool == NULL) {
         return;
     }
-    LOCK(pool->mutex);
+    LOCK_OR_EXIT(pool->mutex);
     while (((!pool->stop) && (pool->working_cnt != 0)) ||
            ((pool->stop) && (pool->thread_cnt != 0))) {
         /* NOTE: Either at least one thread is still working, or at least one
@@ -161,5 +161,5 @@ void tpool_wait(tpool_t* pool) {
          */
         EXIT_IF(pthread_cond_wait(&(pool->working_cond), &(pool->mutex)) != 0);
     }
-    UNLOCK(pool->mutex);
+    UNLOCK_OR_EXIT(pool->mutex);
 }
