@@ -37,7 +37,9 @@ int main(void) {
         data[i] = i;
     }
     for (uint16_t i = 0; i < N_ITEMS; ++i) {
-        tpool_work_enqueue(&pool, worker, &data[i]);
+        if (!tpool_work_enqueue(&pool, worker, &data[i])) {
+            break;
+        }
     }
     usleep(10); /* NOTE: The pool sometimes doesn't kick off. This tiny pause
                  * seems to help... but, why? What is going on here?
