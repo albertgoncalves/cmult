@@ -11,12 +11,33 @@ now () {
 build_all () {
     flags=(
         "-std=c99" \
-        -Werror -Wall -Wextra -Wconversion -Wsign-conversion -Wunused \
-        -Wunused-function -Wunused-label -Wunused-macros -Wunused-parameter \
-        -Wunused-value -Wunused-variable -Wcast-align -Wcast-qual \
-        -Wmissing-declarations -Wredundant-decls -Wmissing-prototypes \
-        -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes \
-        -Wwrite-strings -Wswitch -Wmissing-field-initializers
+        "-ferror-limit=1" \
+        -O0 \
+        -Werror \
+        -Wall \
+        -Wextra \
+        -Wconversion \
+        -Wsign-conversion \
+        -Wunused \
+        -Wunused-function \
+        -Wunused-label \
+        -Wunused-macros \
+        -Wunused-parameter \
+        -Wunused-value \
+        -Wunused-variable \
+        -Wcast-align \
+        -Wcast-qual \
+        -Wmissing-declarations \
+        -Wredundant-decls \
+        -Wmissing-prototypes \
+        -Wnested-externs \
+        -Wpointer-arith \
+        -Wshadow \
+        -Wstrict-prototypes \
+        -Wwrite-strings \
+        -Wswitch \
+        -Wmissing-field-initializers \
+        -pedantic-errors
     )
     srcs=(
         lib
@@ -26,10 +47,10 @@ build_all () {
     cd "$WD/build" || exit 1
     for x in "${srcs[@]/%/.c}"; do
         echo "Compiling $x"
-        cc "${flags[@]}" -c "$x"
+        clang "${flags[@]}" -c "$x"
     done
     echo "Linking..."
-    cc "${flags[@]}" -lpthread "${srcs[@]/%/.o}" -o "$TARGET"
+    clang "${flags[@]}" -lpthread "${srcs[@]/%/.o}" -o "$TARGET"
 }
 
 (
