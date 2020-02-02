@@ -23,15 +23,15 @@ typedef struct tpool      tpool_t;
 typedef void (*thread_func_t)(void* arg);
 
 struct tpool {
-    tpool_work_t*   work_first;
-    tpool_work_t*   work_last;
     pthread_mutex_t mutex;
-    pthread_cond_t  new_work_cond;
-    pthread_cond_t  working_cond;
-    size_t          avail_work_cnt;
-    size_t          working_cnt;
-    size_t          thread_cnt;
+    pthread_cond_t  enqueue_cond;
+    pthread_cond_t  dequeue_cond;
     thread_func_t   func;
+    tpool_work_t*   queue_first;
+    tpool_work_t*   queue_last;
+    size_t          queue_len;
+    size_t          n_thread_active;
+    size_t          n_thread_total;
     bool            stop;
 };
 
