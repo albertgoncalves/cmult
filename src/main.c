@@ -39,9 +39,6 @@ int main(void) {
     for (size_t i = 0; i < N_ITEMS; ++i) {
         EXIT_IF(!tpool_work_enqueue(&pool, &data[i]))
     }
-    usleep(10); /* NOTE: The pool sometimes doesn't kick off. This tiny pause
-                 * seems to help... but, why? What is going on here?
-                 */
     tpool_wait(&pool);
     for (size_t i = 0; i < N_ITEMS; ++i) {
         printf("%hu\n", data[i]);

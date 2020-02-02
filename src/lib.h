@@ -28,6 +28,7 @@ struct tpool {
     pthread_mutex_t mutex;
     pthread_cond_t  new_work_cond;
     pthread_cond_t  working_cond;
+    size_t          avail_work_cnt;
     size_t          working_cnt;
     size_t          thread_cnt;
     thread_func_t   func;
