@@ -45,12 +45,8 @@ build_all () {
     )
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
-    for x in "${srcs[@]/%/.c}"; do
-        echo "Compiling $x"
-        clang "${flags[@]}" -c "$x"
-    done
-    echo "Linking..."
-    clang "${flags[@]}" -lpthread "${srcs[@]/%/.o}" -o "$TARGET"
+    printf "Compiling %s\n" "${srcs[@]/%/.c}"
+    clang "${flags[@]}" -lpthread "${srcs[@]/%/.c}" -o "$TARGET"
 }
 
 (
