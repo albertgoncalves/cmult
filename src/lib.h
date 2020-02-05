@@ -17,9 +17,9 @@
         exit(1);                                                          \
     }
 
-typedef struct tpool_work tpool_work_t;
-typedef struct tpool      tpool_t;
+#define CAPACITY (size_t)30
 
+typedef struct tpool tpool_t;
 typedef void (*thread_func_t)(void* arg);
 
 struct tpool {
@@ -27,8 +27,8 @@ struct tpool {
     pthread_cond_t  enqueue_cond;
     pthread_cond_t  dequeue_cond;
     thread_func_t   func;
-    tpool_work_t*   queue_first;
-    tpool_work_t*   queue_last;
+    void*           memory[CAPACITY];
+    size_t          index;
     size_t          queue_len;
     size_t          n_thread_active;
     size_t          n_thread_total;

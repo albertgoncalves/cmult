@@ -8,48 +8,34 @@
 
 static const size_t DEFAULT_N_THREADS = 2;
 
-struct tpool_work {
-    void*              arg;
-    struct tpool_work* next;
-};
-
-static tpool_work_t* tpool_work_create(void* arg) {
-    tpool_work_t* work = malloc(sizeof(tpool_work_t));
-    EXIT_IF(work == NULL);
-    work->arg  = arg;
-    work->next = NULL;
-    return work;
-}
-
-static void tpool_work_destroy(tpool_work_t* work) {
-    if (work == NULL) {
-        return;
+bool tpool_work_enqueue(tpool_t* pool, void* arg) {
+    if ((pool == NULL) || ((CAPACITY - pool->queue_len) == 0)) {
+        return false;
     }
-    free(work);
+    LOCK_OR_EXIT(pool->mutex);
+    pool->memory[pool->index] = arg;
+    pool->index               = (pool->index + 1) % CAPACITY;
+    ++pool->queue_len;
+    EXIT_IF(pthread_cond_broadcast(&(pool->enqueue_cond)) != 0);
+    UNLOCK_OR_EXIT(pool->mutex);
+    return true;
 }
 
-static tpool_work_t* tpool_work_dequeue(tpool_t* pool) {
-    if (pool == NULL) {
+static void* tpool_work_dequeue(tpool_t* pool) {
+    if ((pool == NULL) || (pool->queue_len == 0)) {
         return NULL;
     }
-    tpool_work_t* work = pool->queue_first;
-    if (work == NULL) {
-        return NULL;
-    }
-    if (work->next == NULL) {
-        pool->queue_first = NULL;
-        pool->queue_last  = NULL;
-    } else {
-        pool->queue_first = work->next;
-    }
-    return work;
+    size_t index = ((CAPACITY - pool->queue_len) + pool->index) % CAPACITY;
+    void*  arg   = pool->memory[index];
+    --pool->queue_len;
+    return arg;
 }
 
-static void* tpool_worker(void* arg) {
-    tpool_t* pool = arg;
+static void* tpool_worker(void* ptr) {
+    tpool_t* pool = ptr;
     for (;;) {
         LOCK_OR_EXIT(pool->mutex);
-        while ((pool->queue_first == NULL) && (!pool->stop)) {
+        while ((pool->queue_len == 0) && (!pool->stop)) {
             /* NOTE: `pthread_cond_wait` does a few things for us:
              *   1. Block process until work arrives.
              *   2. Release `pool->mutex` so other workers can acquire it.
@@ -62,19 +48,15 @@ static void* tpool_worker(void* arg) {
             break;
         }
         ++pool->n_thread_active;
-        tpool_work_t* work = tpool_work_dequeue(pool);
-        if (work != NULL) {
-            --pool->queue_len;
-        }
+        void* arg = tpool_work_dequeue(pool);
         UNLOCK_OR_EXIT(pool->mutex);
-        if (work != NULL) {
-            pool->func(work->arg);
-            tpool_work_destroy(work);
+        if (arg != NULL) {
+            pool->func(arg);
         }
         LOCK_OR_EXIT(pool->mutex);
         --pool->n_thread_active;
         if ((!pool->stop) && (pool->n_thread_active == 0) &&
-            (pool->queue_first == NULL)) {
+            (pool->queue_len == 0)) {
             /* NOTE: Send signal that given thread is no longer working. */
             EXIT_IF(pthread_cond_signal(&(pool->dequeue_cond)) != 0);
         }
@@ -98,9 +80,8 @@ bool tpool_set(tpool_t* pool, thread_func_t func, size_t n) {
     EXIT_IF(pthread_cond_init(&(pool->enqueue_cond), NULL) != 0);
     EXIT_IF(pthread_cond_init(&(pool->dequeue_cond), NULL) != 0);
     pool->func            = func;
-    pool->queue_first     = NULL;
-    pool->queue_last      = NULL;
     pool->queue_len       = 0;
+    pool->index           = 0;
     pool->n_thread_active = 0;
     pool->n_thread_total  = n;
     pool->stop            = false;
@@ -109,48 +90,6 @@ bool tpool_set(tpool_t* pool, thread_func_t func, size_t n) {
         EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
         EXIT_IF(pthread_detach(thread) != 0);
     }
-    return true;
-}
-
-void tpool_clear(tpool_t* pool) {
-    if (pool == NULL) {
-        return;
-    }
-    LOCK_OR_EXIT(pool->mutex);
-    tpool_work_t* work_current = pool->queue_first;
-    while (work_current != NULL) {
-        tpool_work_t* work_next = work_current->next;
-        tpool_work_destroy(work_current);
-        work_current = work_next;
-    }
-    pool->stop = true;
-    EXIT_IF(pthread_cond_broadcast(&(pool->enqueue_cond)) != 0);
-    UNLOCK_OR_EXIT(pool->mutex);
-    tpool_wait(pool);
-    EXIT_IF(pthread_mutex_destroy(&(pool->mutex)) != 0);
-    EXIT_IF(pthread_cond_destroy(&(pool->enqueue_cond)) != 0);
-    EXIT_IF(pthread_cond_destroy(&(pool->dequeue_cond)) != 0);
-}
-
-bool tpool_work_enqueue(tpool_t* pool, void* arg) {
-    if (pool == NULL) {
-        return false;
-    }
-    tpool_work_t* work = tpool_work_create(arg);
-    if (work == NULL) {
-        return false;
-    }
-    LOCK_OR_EXIT(pool->mutex);
-    ++pool->queue_len;
-    if (pool->queue_first == NULL) {
-        pool->queue_first = work;
-        pool->queue_last  = pool->queue_first;
-    } else {
-        pool->queue_last->next = work;
-        pool->queue_last       = pool->queue_last->next;
-    }
-    EXIT_IF(pthread_cond_broadcast(&(pool->enqueue_cond)) != 0);
-    UNLOCK_OR_EXIT(pool->mutex);
     return true;
 }
 
@@ -165,4 +104,18 @@ void tpool_wait(tpool_t* pool) {
         EXIT_IF(pthread_cond_wait(&(pool->dequeue_cond), &(pool->mutex)) != 0);
     }
     UNLOCK_OR_EXIT(pool->mutex);
+}
+
+void tpool_clear(tpool_t* pool) {
+    if (pool == NULL) {
+        return;
+    }
+    LOCK_OR_EXIT(pool->mutex);
+    pool->stop = true;
+    EXIT_IF(pthread_cond_broadcast(&(pool->enqueue_cond)) != 0);
+    UNLOCK_OR_EXIT(pool->mutex);
+    tpool_wait(pool);
+    EXIT_IF(pthread_mutex_destroy(&(pool->mutex)) != 0);
+    EXIT_IF(pthread_cond_destroy(&(pool->enqueue_cond)) != 0);
+    EXIT_IF(pthread_cond_destroy(&(pool->dequeue_cond)) != 0);
 }

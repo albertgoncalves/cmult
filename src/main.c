@@ -13,7 +13,7 @@
 
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
-#define N_ITEMS 10
+#define N_ITEMS (size_t)25
 
 static const uint16_t  N_THREADS = 3;
 static pthread_mutex_t MUTEX;
@@ -36,10 +36,12 @@ int main(void) {
     for (size_t i = 0; i < N_ITEMS; ++i) {
         data[i] = (uint16_t)i;
     }
-    for (size_t i = 0; i < N_ITEMS; ++i) {
-        EXIT_IF(!tpool_work_enqueue(&pool, &data[i]))
+    for (size_t j = 0; j < 2; ++j) {
+        for (size_t i = 0; i < N_ITEMS; ++i) {
+            EXIT_IF(!tpool_work_enqueue(&pool, &data[i]))
+        }
+        tpool_wait(&pool);
     }
-    tpool_wait(&pool);
     for (size_t i = 0; i < N_ITEMS; ++i) {
         printf("%hu\n", data[i]);
     }
