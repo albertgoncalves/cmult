@@ -27,12 +27,12 @@ struct tpool {
     pthread_cond_t  enqueue_cond;
     pthread_cond_t  dequeue_cond;
     thread_func_t   func;
-    void*           memory[CAPACITY];
-    size_t          index;
-    size_t          queue_len;
+    bool            stop;
     size_t          n_thread_active;
     size_t          n_thread_total;
-    bool            stop;
+    size_t          queue_len;
+    size_t          index;
+    void*           memory[CAPACITY];
 };
 
 bool tpool_set(tpool_t* pool, thread_func_t func, size_t n);

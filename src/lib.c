@@ -80,11 +80,11 @@ bool tpool_set(tpool_t* pool, thread_func_t func, size_t n) {
     EXIT_IF(pthread_cond_init(&(pool->enqueue_cond), NULL) != 0);
     EXIT_IF(pthread_cond_init(&(pool->dequeue_cond), NULL) != 0);
     pool->func            = func;
-    pool->queue_len       = 0;
-    pool->index           = 0;
+    pool->stop            = false;
     pool->n_thread_active = 0;
     pool->n_thread_total  = n;
-    pool->stop            = false;
+    pool->queue_len       = 0;
+    pool->index           = 0;
     for (size_t i = 0; i < n; ++i) {
         pthread_t thread;
         EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
