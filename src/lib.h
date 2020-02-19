@@ -19,10 +19,9 @@
 
 #define CAPACITY (size_t)30
 
-typedef struct tpool tpool_t;
 typedef void (*thread_func_t)(void* arg);
 
-struct tpool {
+typedef struct {
     pthread_mutex_t mutex;
     pthread_cond_t  enqueue_cond;
     pthread_cond_t  dequeue_cond;
@@ -33,7 +32,7 @@ struct tpool {
     size_t          queue_len;
     size_t          index;
     void*           memory[CAPACITY];
-};
+} tpool_t;
 
 bool tpool_set(tpool_t* pool, thread_func_t func, size_t n);
 void tpool_clear(tpool_t* pool);
