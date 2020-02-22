@@ -21,7 +21,7 @@ static pthread_mutex_t MUTEX;
 
 static void worker(void* arg) {
     usleep(100000);
-    T copy = *(T*)arg;
+    const T copy = *(T*)arg;
     *(T*)arg += 100;
     pthread_mutex_lock(&MUTEX);
     printf("address: %p\tin: %hu\tout: %hu\n", (void*)pthread_self(), copy,

@@ -34,7 +34,7 @@ typedef struct {
     void*           memory[CAPACITY];
 } tpool_t;
 
-bool tpool_set(tpool_t* pool, thread_func_t func, size_t n);
+bool tpool_set(tpool_t* pool, const thread_func_t func, const size_t n);
 void tpool_clear(tpool_t* pool);
 bool tpool_work_enqueue(tpool_t* pool, void* arg);
 void tpool_wait(tpool_t* pool);

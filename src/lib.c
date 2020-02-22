@@ -69,12 +69,9 @@ static void* tpool_worker(void* ptr) {
     return NULL;
 }
 
-bool tpool_set(tpool_t* pool, thread_func_t func, size_t n) {
+bool tpool_set(tpool_t* pool, const thread_func_t func, const size_t n) {
     if (func == NULL) {
         return false;
-    }
-    if (n == 0) {
-        n = DEFAULT_N_THREADS;
     }
     EXIT_IF(pthread_mutex_init(&(pool->mutex), NULL) != 0);
     EXIT_IF(pthread_cond_init(&(pool->enqueue_cond), NULL) != 0);
@@ -82,9 +79,13 @@ bool tpool_set(tpool_t* pool, thread_func_t func, size_t n) {
     pool->func            = func;
     pool->stop            = false;
     pool->n_thread_active = 0;
-    pool->n_thread_total  = n;
-    pool->queue_len       = 0;
-    pool->index           = 0;
+    if (n == 0) {
+        pool->n_thread_total = DEFAULT_N_THREADS;
+    } else {
+        pool->n_thread_total = n;
+    }
+    pool->queue_len = 0;
+    pool->index     = 0;
     for (size_t i = 0; i < n; ++i) {
         pthread_t thread;
         EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
