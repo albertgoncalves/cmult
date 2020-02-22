@@ -13,10 +13,10 @@
 
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
-#define N_ITEMS (size_t)25
-#define T       uint16_t
+#define T         uint16_t
+#define N_ITEMS   (size_t)25
+#define N_THREADS (size_t)3
 
-static const size_t    N_THREADS = 3;
 static pthread_mutex_t MUTEX;
 
 static void worker(void* arg) {
