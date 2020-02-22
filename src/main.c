@@ -14,17 +14,18 @@
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
 #define N_ITEMS (size_t)25
+#define T       uint16_t
 
-static const uint16_t  N_THREADS = 3;
+static const size_t    N_THREADS = 3;
 static pthread_mutex_t MUTEX;
 
 static void worker(void* arg) {
     usleep(100000);
-    uint16_t copy = *(uint16_t*)arg;
-    *(uint16_t*)arg += 100;
+    T copy = *(T*)arg;
+    *(T*)arg += 100;
     pthread_mutex_lock(&MUTEX);
     printf("address: %p\tin: %hu\tout: %hu\n", (void*)pthread_self(), copy,
-           *(uint16_t*)arg);
+           *(T*)arg);
     pthread_mutex_unlock(&MUTEX);
 }
 
@@ -32,9 +33,9 @@ int main(void) {
     EXIT_IF(pthread_mutex_init(&MUTEX, NULL) != 0);
     tpool_t pool;
     EXIT_IF(!tpool_set(&pool, worker, N_THREADS));
-    uint16_t data[N_ITEMS] = {0};
+    T data[N_ITEMS] = {0};
     for (size_t i = 0; i < N_ITEMS; ++i) {
-        data[i] = (uint16_t)i;
+        data[i] = (T)i;
     }
     for (size_t j = 0; j < 2; ++j) {
         for (size_t i = 0; i < N_ITEMS; ++i) {
