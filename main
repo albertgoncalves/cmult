@@ -12,7 +12,7 @@ build_all () {
     flags=(
         "-std=c99" \
         "-ferror-limit=1" \
-        -O0 \
+        -O1 \
         -Werror \
         -Wall \
         -Wextra \
