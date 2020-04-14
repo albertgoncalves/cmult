@@ -101,7 +101,8 @@ void tpool_wait(tpool_t* pool) {
     LOCK_OR_EXIT(pool->mutex);
     while (((!pool->stop) && (pool->queue_len != 0)) ||
            ((!pool->stop) && (pool->n_thread_active != 0)) ||
-           ((pool->stop) && (pool->n_thread_total != 0))) {
+           ((pool->stop) && (pool->n_thread_total != 0)))
+    {
         EXIT_IF(pthread_cond_wait(&(pool->dequeue_cond), &(pool->mutex)) != 0);
     }
     UNLOCK_OR_EXIT(pool->mutex);

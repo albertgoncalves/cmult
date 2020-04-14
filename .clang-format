@@ -10,3 +10,8 @@ AlignOperands: true
 AlignTrailingComments: true
 AlignConsecutiveMacros: true
 IndentPPDirectives: BeforeHash
+AllowShortFunctionsOnASingleLine: None
+BinPackArguments: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterControlStatement: MultiLine

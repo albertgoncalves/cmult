@@ -9,12 +9,12 @@ let
     '';
 in
 {
-    darwin = llvmPackages_9.stdenv.mkDerivation {
+    darwin = llvmPackages_10.stdenv.mkDerivation {
         name = "_";
         buildInputs = shared;
         shellHook = hook;
     };
-    linux = llvmPackages_9.stdenv.mkDerivation {
+    linux = llvmPackages_10.stdenv.mkDerivation {
         name = "_";
         buildInputs = [
             valgrind
