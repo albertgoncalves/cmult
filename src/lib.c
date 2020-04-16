@@ -15,7 +15,7 @@ bool tpool_work_enqueue(tpool_t* pool, void* arg) {
     LOCK_OR_EXIT(pool->mutex);
     pool->memory[pool->index] = arg;
     pool->index               = (pool->index + 1) % CAPACITY;
-    ++pool->queue_len;
+    ++(pool->queue_len);
     EXIT_IF(pthread_cond_broadcast(&(pool->enqueue_cond)) != 0);
     UNLOCK_OR_EXIT(pool->mutex);
     return true;
@@ -27,7 +27,7 @@ static void* tpool_work_dequeue(tpool_t* pool) {
     }
     size_t index = ((CAPACITY - pool->queue_len) + pool->index) % CAPACITY;
     void*  arg   = pool->memory[index];
-    --pool->queue_len;
+    --(pool->queue_len);
     return arg;
 }
 
@@ -47,14 +47,14 @@ static void* tpool_worker(void* ptr) {
         if (pool->stop) {
             break;
         }
-        ++pool->n_thread_active;
+        ++(pool->n_thread_active);
         void* arg = tpool_work_dequeue(pool);
         UNLOCK_OR_EXIT(pool->mutex);
         if (arg != NULL) {
             pool->func(arg);
         }
         LOCK_OR_EXIT(pool->mutex);
-        --pool->n_thread_active;
+        --(pool->n_thread_active);
         if ((!pool->stop) && (pool->n_thread_active == 0) &&
             (pool->queue_len == 0)) {
             /* NOTE: Send signal that given thread is no longer working. */
@@ -62,7 +62,7 @@ static void* tpool_worker(void* ptr) {
         }
         UNLOCK_OR_EXIT(pool->mutex);
     }
-    --pool->n_thread_total;
+    --(pool->n_thread_total);
     /* NOTE: Send signal that the given thread has exited its work loop. */
     EXIT_IF(pthread_cond_signal(&(pool->dequeue_cond)) != 0);
     UNLOCK_OR_EXIT(pool->mutex);

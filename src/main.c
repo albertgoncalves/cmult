@@ -24,7 +24,9 @@ static void worker(void* arg) {
     const T copy = *(T*)arg;
     *(T*)arg += 100;
     pthread_mutex_lock(&MUTEX);
-    printf("address: %p\tin: %hu\tout: %hu\n", (void*)pthread_self(), copy,
+    printf("address: %p\tin: %hu\tout: %hu\n",
+           (void*)pthread_self(),
+           copy,
            *(T*)arg);
     pthread_mutex_unlock(&MUTEX);
 }
