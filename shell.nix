@@ -1,24 +1,12 @@
 with import <nixpkgs> {};
-let
-    shared = [
+mkShell {
+    buildInputs = [
+        clang_10
         python3
         shellcheck
+        valgrind
     ];
-    hook = ''
+    shellHook = ''
         . .shellhook
     '';
-in
-{
-    darwin = llvmPackages_10.stdenv.mkDerivation {
-        name = "_";
-        buildInputs = shared;
-        shellHook = hook;
-    };
-    linux = mkShell {
-        buildInputs = [
-            clang_10
-            valgrind
-        ] ++ shared;
-        shellHook = hook;
-    };
 }

@@ -9,6 +9,7 @@ now () {
 }
 
 export FLAGS=(
+    -Os \
     -Wall \
     -Wbad-function-cast \
     -Wcast-align \
@@ -47,15 +48,15 @@ export FLAGS=(
     -Wunused \
     -Wunused-macros \
     -Wwrite-strings \
-    -fdelete-null-pointer-checks
+    -fdelete-null-pointer-checks \
+    -s \
+    "-std=gnu99"
 )
 
 build_all () {
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
     gcc \
-        -std=gnu99 \
-        -O1 \
         -pthread \
         "${FLAGS[@]}" \
         tpool.c \

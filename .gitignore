@@ -1,7 +1,6 @@
 *
 !.gitignore
 !*.nix
-!shell
 !.shellhook
 !.clang-format
 !src/
