@@ -8,45 +8,59 @@ now () {
     date +%s.%N
 }
 
+export FLAGS=(
+    -Wall \
+    -Wbad-function-cast \
+    -Wcast-align \
+    "-Wcast-align=strict" \
+    -Wcast-qual \
+    -Wconversion \
+    -Wdate-time \
+    -Wdouble-promotion \
+    -Wduplicated-branches \
+    -Wduplicated-cond \
+    -Werror \
+    -Wextra \
+    -Wfatal-errors \
+    -Wfloat-equal \
+    -Wformat-signedness \
+    "-Wformat=2" \
+    -Winline \
+    -Wlogical-op \
+    -Wmissing-declarations \
+    -Wmissing-include-dirs \
+    -Wmissing-prototypes \
+    -Wnested-externs \
+    -Wnull-dereference \
+    -Wpacked \
+    -Wpadded \
+    -Wpedantic \
+    -Wpointer-arith \
+    -Wredundant-decls \
+    -Wshadow \
+    -Wstack-protector \
+    -Wstrict-prototypes \
+    -Wswitch-default \
+    -Wswitch-enum \
+    -Wtrampolines \
+    -Wundef \
+    -Wunused \
+    -Wunused-macros \
+    -Wwrite-strings \
+    -fdelete-null-pointer-checks
+)
+
 build_all () {
-    flags=(
-        "-std=c99" \
-        "-ferror-limit=1" \
-        -O1 \
-        -Werror \
-        -Wall \
-        -Wextra \
-        -Wconversion \
-        -Wsign-conversion \
-        -Wunused \
-        -Wunused-function \
-        -Wunused-label \
-        -Wunused-macros \
-        -Wunused-parameter \
-        -Wunused-value \
-        -Wunused-variable \
-        -Wcast-align \
-        -Wcast-qual \
-        -Wmissing-declarations \
-        -Wredundant-decls \
-        -Wmissing-prototypes \
-        -Wnested-externs \
-        -Wpointer-arith \
-        -Wshadow \
-        -Wstrict-prototypes \
-        -Wwrite-strings \
-        -Wswitch \
-        -Wmissing-field-initializers \
-        -pedantic-errors
-    )
-    srcs=(
-        lib
-        main
-    )
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
-    printf "Compiling %s\n" "${srcs[@]/%/.c}"
-    clang "${flags[@]}" -lpthread "${srcs[@]/%/.c}" -o "$TARGET"
+    gcc \
+        -std=gnu99 \
+        -O1 \
+        -pthread \
+        "${FLAGS[@]}" \
+        tpool.c \
+        main.c \
+        -o "$TARGET"
 }
 
 (

@@ -14,9 +14,9 @@ in
         buildInputs = shared;
         shellHook = hook;
     };
-    linux = llvmPackages_10.stdenv.mkDerivation {
-        name = "_";
+    linux = mkShell {
         buildInputs = [
+            clang_10
             valgrind
         ] ++ shared;
         shellHook = hook;

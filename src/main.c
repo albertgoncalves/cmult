@@ -9,25 +9,24 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "lib.h"
+#include "exit.h"
+#include "tpool.h"
 
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
 #define T         uint16_t
-#define N_ITEMS   (size_t)25
-#define N_THREADS (size_t)3
+#define N_ITEMS   25
+#define N_THREADS 3
 
 static pthread_mutex_t MUTEX;
 
 static void worker(void* arg) {
     usleep(100000);
     const T copy = *(T*)arg;
-    *(T*)arg += 100;
+    *(T*)arg     = (T)(*(T*)arg + 100);
     pthread_mutex_lock(&MUTEX);
-    printf("address: %p\tin: %hu\tout: %hu\n",
-           (void*)pthread_self(),
-           copy,
-           *(T*)arg);
+    const uint64_t id = pthread_self();
+    printf("id: %lu\tin: %hu\tout: %hu\n", id, copy, *(T*)arg);
     pthread_mutex_unlock(&MUTEX);
 }
 
