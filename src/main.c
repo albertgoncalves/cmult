@@ -1,12 +1,5 @@
-#if __linux__
-    #define _DEFAULT_SOURCE
-#endif
-
 #include <pthread.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #include "exit.h"

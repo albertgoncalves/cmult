@@ -2,7 +2,6 @@
 #define __TPOOL_H__
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #define CAPACITY 33
 

@@ -1,5 +1,4 @@
 #include <pthread.h>
-#include <stdlib.h>
 
 #include "exit.h"
 #include "tpool.h"
