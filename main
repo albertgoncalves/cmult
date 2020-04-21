@@ -49,7 +49,6 @@ export FLAGS=(
     -Wunused-macros \
     -Wwrite-strings \
     -fdelete-null-pointer-checks \
-    -s \
     "-std=gnu99"
 )
 
