@@ -2,12 +2,11 @@
 
 set -euo pipefail
 
-export TARGET="$WD/bin/main"
-
 now () {
     date +%s.%N
 }
 
+export TARGET="$WD/bin/main"
 export FLAGS=(
     -fdelete-null-pointer-checks \
     -fshort-enums \
