@@ -9,7 +9,7 @@
 
 #define T         uint16_t
 #define N_ITEMS   25
-#define N_THREADS 3
+#define N_THREADS 4
 
 static pthread_mutex_t MUTEX;
 
