@@ -16,7 +16,7 @@ static pthread_mutex_t MUTEX;
 static void worker(void* arg) {
     usleep(100000);
     const T copy = *(T*)arg;
-    *(T*)arg     = (T)(*(T*)arg + 100);
+    *(T*)arg = (T)(*(T*)arg + 100);
     pthread_mutex_lock(&MUTEX);
     const uint64_t id = pthread_self();
     printf("id: %lu\tin: %hu\tout: %hu\n", id, copy, *(T*)arg);

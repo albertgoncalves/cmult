@@ -14,7 +14,7 @@ bool tpool_work_enqueue(tpool_t* pool, void* arg) {
     }
     LOCK_OR_EXIT(pool->mutex);
     pool->memory[pool->index] = arg;
-    pool->index               = (pool->index + 1) % CAPACITY;
+    pool->index = (pool->index + 1) % CAPACITY;
     ++pool->queue_len;
     EXIT_IF(pthread_cond_broadcast(&pool->enqueue_cond) != 0);
     UNLOCK_OR_EXIT(pool->mutex);
@@ -26,7 +26,7 @@ static void* tpool_work_dequeue(tpool_t* pool) {
         return NULL;
     }
     size_t index = ((CAPACITY - pool->queue_len) + pool->index) % CAPACITY;
-    void*  arg   = pool->memory[index];
+    void*  arg = pool->memory[index];
     --pool->queue_len;
     return arg;
 }
@@ -75,8 +75,8 @@ bool tpool_set(tpool_t* pool, const thread_func_t func, const size_t n) {
     EXIT_IF(pthread_mutex_init(&pool->mutex, NULL) != 0);
     EXIT_IF(pthread_cond_init(&pool->enqueue_cond, NULL) != 0);
     EXIT_IF(pthread_cond_init(&pool->dequeue_cond, NULL) != 0);
-    pool->func            = func;
-    pool->stop            = false;
+    pool->func = func;
+    pool->stop = false;
     pool->n_thread_active = 0;
     if (n == 0) {
         pool->n_thread_total = DEFAULT_N_THREADS;
@@ -84,7 +84,7 @@ bool tpool_set(tpool_t* pool, const thread_func_t func, const size_t n) {
         pool->n_thread_total = n;
     }
     pool->queue_len = 0;
-    pool->index     = 0;
+    pool->index = 0;
     for (size_t i = 0; i < n; ++i) {
         pthread_t thread;
         EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
