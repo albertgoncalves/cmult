@@ -9,7 +9,10 @@ now () {
 }
 
 export FLAGS=(
+    -fdelete-null-pointer-checks \
+    -fshort-enums \
     -Os \
+    "-std=gnu99" \
     -Wall \
     -Wbad-function-cast \
     -Wcast-align \
@@ -24,8 +27,8 @@ export FLAGS=(
     -Wextra \
     -Wfatal-errors \
     -Wfloat-equal \
-    -Wformat-signedness \
     "-Wformat=2" \
+    -Wformat-signedness \
     -Winline \
     -Wlogical-op \
     -Wmissing-declarations \
@@ -34,7 +37,6 @@ export FLAGS=(
     -Wnested-externs \
     -Wnull-dereference \
     -Wpacked \
-    -Wpadded \
     -Wpedantic \
     -Wpointer-arith \
     -Wredundant-decls \
@@ -46,9 +48,7 @@ export FLAGS=(
     -Wundef \
     -Wunused \
     -Wunused-macros \
-    -Wwrite-strings \
-    -fdelete-null-pointer-checks \
-    "-std=gnu99"
+    -Wwrite-strings
 )
 
 build_all () {
