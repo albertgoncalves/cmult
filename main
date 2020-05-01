@@ -84,11 +84,7 @@ export FILES=(
 build_all () {
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
-    gcc \
-        -o "$TARGET_VALGRIND" \
-        "${FLAGS[@]}" \
-        -pthread \
-        "${FILES[@]}"
+    gcc -o "$TARGET_VALGRIND" "${FLAGS[@]}" -pthread "${FILES[@]}"
     gcc \
         -o "$TARGET_SANITIZE" \
         "${FLAGS[@]}" \
