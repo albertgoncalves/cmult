@@ -7,10 +7,14 @@
 #define UNLOCK_OR_EXIT(mutex) EXIT_IF(pthread_mutex_unlock(&mutex) != 0);
 
 bool tpool_work_enqueue(tpool_t* pool, void* arg) {
-    if ((pool == NULL) || ((CAPACITY - pool->queue_len) == 0)) {
+    if (pool == NULL) {
         return false;
     }
     LOCK_OR_EXIT(pool->mutex);
+    if ((CAPACITY - pool->queue_len) == 0) {
+        UNLOCK_OR_EXIT(pool->mutex);
+        return false;
+    }
     pool->memory[pool->index] = arg;
     pool->index = (pool->index + 1) % CAPACITY;
     ++pool->queue_len;

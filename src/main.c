@@ -14,7 +14,7 @@
 static pthread_mutex_t MUTEX;
 
 static void worker(void* arg) {
-    usleep(100000);
+    usleep(10000);
     const T copy = *(T*)arg;
     *(T*)arg = (T)(*(T*)arg + 100);
     pthread_mutex_lock(&MUTEX);
@@ -25,21 +25,23 @@ static void worker(void* arg) {
 
 int main(void) {
     EXIT_IF(pthread_mutex_init(&MUTEX, NULL) != 0);
-    tpool_t pool;
-    EXIT_IF(!tpool_set(&pool, worker, N_THREADS));
-    T data[N_ITEMS] = {0};
+    tpool_t* pool = calloc(sizeof(tpool_t), 1);
+    EXIT_IF(!tpool_set(pool, worker, N_THREADS));
+    T* data = calloc(sizeof(T) * N_ITEMS, 1);
     for (size_t i = 0; i < N_ITEMS; ++i) {
         data[i] = (T)i;
     }
     for (size_t j = 0; j < 2; ++j) {
         for (size_t i = 0; i < N_ITEMS; ++i) {
-            EXIT_IF(!tpool_work_enqueue(&pool, &data[i]))
+            EXIT_IF(!tpool_work_enqueue(pool, &data[i]))
         }
-        tpool_wait(&pool);
+        tpool_wait(pool);
     }
     for (size_t i = 0; i < N_ITEMS; ++i) {
         printf("%hu\n", data[i]);
     }
-    tpool_clear(&pool);
+    tpool_clear(pool);
+    free(pool);
+    free(data);
     return EXIT_SUCCESS;
 }

@@ -6,59 +6,95 @@ now () {
     date +%s.%N
 }
 
-export TARGET="$WD/bin/main"
+export TARGET_SANITIZE="$WD/bin/main_sanitize"
+export TARGET_VALGRIND="$WD/bin/main_valgrind"
 export FLAGS=(
-    -fdelete-null-pointer-checks
-    -fshort-enums
-    -Os
+    "-fdelete-null-pointer-checks"
+    "-fshort-enums"
+    "-Os"
     "-std=gnu99"
-    -Wall
-    -Wbad-function-cast
-    -Wcast-align
+    "-Wall"
+    "-Wbad-function-cast"
+    "-Wcast-align"
     "-Wcast-align=strict"
-    -Wcast-qual
-    -Wconversion
-    -Wdate-time
-    -Wdouble-promotion
-    -Wduplicated-branches
-    -Wduplicated-cond
-    -Werror
-    -Wextra
-    -Wfatal-errors
-    -Wfloat-equal
+    "-Wcast-qual"
+    "-Wconversion"
+    "-Wdate-time"
+    "-Wdouble-promotion"
+    "-Wduplicated-branches"
+    "-Wduplicated-cond"
+    "-Werror"
+    "-Wextra"
+    "-Wfatal-errors"
+    "-Wfloat-equal"
     "-Wformat=2"
-    -Wformat-signedness
-    -Winline
-    -Wlogical-op
-    -Wmissing-declarations
-    -Wmissing-include-dirs
-    -Wmissing-prototypes
-    -Wnested-externs
-    -Wnull-dereference
-    -Wpacked
-    -Wpedantic
-    -Wpointer-arith
-    -Wredundant-decls
-    -Wshadow
-    -Wstack-protector
-    -Wstrict-prototypes
-    -Wswitch-enum
-    -Wtrampolines
-    -Wundef
-    -Wunused
-    -Wunused-macros
-    -Wwrite-strings
+    "-Wformat-signedness"
+    "-Winline"
+    "-Wlogical-op"
+    "-Wmissing-declarations"
+    "-Wmissing-include-dirs"
+    "-Wmissing-prototypes"
+    "-Wnested-externs"
+    "-Wnull-dereference"
+    "-Wpacked"
+    "-Wpedantic"
+    "-Wpointer-arith"
+    "-Wredundant-decls"
+    "-Wshadow"
+    "-Wstack-protector"
+    "-Wstrict-prototypes"
+    "-Wswitch-enum"
+    "-Wtrampolines"
+    "-Wundef"
+    "-Wunused"
+    "-Wunused-macros"
+    "-Wwrite-strings"
+)
+export FLAGS_SANITIZE=(
+    "-fsanitize-address-use-after-scope"
+    "-fsanitize=alignment"
+    "-fsanitize=bool"
+    "-fsanitize=bounds"
+    "-fsanitize=bounds-strict"
+    "-fsanitize=builtin"
+    "-fsanitize=enum"
+    "-fsanitize=float-cast-overflow"
+    "-fsanitize=float-divide-by-zero"
+    "-fsanitize=integer-divide-by-zero"
+    "-fsanitize=nonnull-attribute"
+    "-fsanitize=null"
+    "-fsanitize=object-size"
+    "-fsanitize=return"
+    "-fsanitize=returns-nonnull-attribute"
+    "-fsanitize=shift"
+    "-fsanitize=shift-base"
+    "-fsanitize=shift-exponent"
+    "-fsanitize=signed-integer-overflow"
+    "-fsanitize=thread"
+    "-fsanitize=undefined"
+    "-fsanitize-undefined-trap-on-error"
+    "-fsanitize=unreachable"
+    "-fsanitize=vla-bound"
+)
+export FILES=(
+    tpool.c
+    main.c
 )
 
 build_all () {
     cp "$WD/src"/* "$WD/build"
     cd "$WD/build" || exit 1
     gcc \
-        -pthread \
+        -o "$TARGET_VALGRIND" \
         "${FLAGS[@]}" \
-        tpool.c \
-        main.c \
-        -o "$TARGET"
+        -pthread \
+        "${FILES[@]}"
+    gcc \
+        -o "$TARGET_SANITIZE" \
+        "${FLAGS[@]}" \
+        "${FLAGS_SANITIZE[@]}" \
+        -pthread \
+        "${FILES[@]}"
 }
 
 (
@@ -69,5 +105,5 @@ build_all () {
     python3 -c "print(\"Done! ({:.3f}s)\n\".format(${end} - ${start}))"
 )
 
-echo "$ $TARGET"
-"$TARGET"
+echo "$ $TARGET_SANITIZE"
+"$TARGET_SANITIZE"
