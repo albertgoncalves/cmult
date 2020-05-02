@@ -64,7 +64,6 @@ export FLAGS_SANITIZE=(
     "-fsanitize=nonnull-attribute"
     "-fsanitize=null"
     "-fsanitize=object-size"
-    "-fsanitize=return"
     "-fsanitize=returns-nonnull-attribute"
     "-fsanitize=shift"
     "-fsanitize=shift-base"
