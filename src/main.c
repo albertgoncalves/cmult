@@ -25,9 +25,9 @@ static void worker(void* arg) {
 
 int main(void) {
     EXIT_IF(pthread_mutex_init(&MUTEX, NULL) != 0);
-    tpool_t* pool = calloc(sizeof(tpool_t), 1);
+    tpool_t* pool = calloc(1, sizeof(tpool_t));
     EXIT_IF(!tpool_set(pool, worker, N_THREADS));
-    T* data = calloc(sizeof(T) * N_ITEMS, 1);
+    T* data = calloc(N_ITEMS, sizeof(T));
     for (size_t i = 0; i < N_ITEMS; ++i) {
         data[i] = (T)i;
     }
