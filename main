@@ -95,6 +95,7 @@ build_all () {
 (
     start=$(now)
     clang-format -i -verbose "$WD/src"/* 2>&1 | sed 's/\/.*\///g'
+    cppcheck --enable=all --suppress=missingIncludeSystem "$WD/src"
     build_all
     end=$(now)
     python3 -c "print(\"Done! ({:.3f}s)\n\".format(${end} - ${start}))"

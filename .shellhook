@@ -9,3 +9,4 @@ for x in "$WD/bin" "$WD/build"; do
 done
 
 alias clang-format="clang-format -verbose -i"
+alias cppcheck="cppcheck --enable=all --suppress=missingIncludeSystem"
