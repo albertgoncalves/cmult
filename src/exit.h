@@ -1,9 +1,6 @@
 #ifndef __EXIT_H__
 #define __EXIT_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #define BOLD_PURPLE    "\033[1;35m"
 #define BOLD           "\033[1m"
 #define BOLD_UNDERLINE "\033[1;4m"

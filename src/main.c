@@ -1,5 +1,6 @@
 #include <pthread.h>
-#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "exit.h"
@@ -7,43 +8,51 @@
 
 /* NOTE: Based on `https://nachtimwald.com/2019/04/12/thread-pool-in-c/`. */
 
-#define T         uint16_t
-#define N_ITEMS   25
-#define N_THREADS 4
+#define N_PAYLOADS 25
+#define N_THREADS  3
 
-static pthread_mutex_t MUTEX;
+typedef struct {
+    u8 value;
+} Payload;
 
-static void worker(void* arg) {
+typedef struct {
+    TPool   pool;
+    Payload payloads[N_PAYLOADS];
+} Memory;
+
+static ThreadMutex MUTEX;
+
+static void thread_fn(void* arg) {
+    Payload* payload = arg;
+    u8       value = payload->value;
+    payload->value = (u8)(value + 100);
     usleep(10000);
-    const T copy = *(T*)arg;
-    *(T*)arg = (T)(*(T*)arg + 100);
-    pthread_mutex_lock(&MUTEX);
-    const uint64_t id = pthread_self();
-    printf("id: %lu\tin: %hu\tout: %hu\n", id, copy, *(T*)arg);
-    pthread_mutex_unlock(&MUTEX);
+    LOCK_OR_EXIT(MUTEX);
+    const u64 id = pthread_self();
+    printf("id: %lu\tin: %hhu\tout: %hhu\n", id, value, payload->value);
+    UNLOCK_OR_EXIT(MUTEX);
 }
 
 int main(void) {
     EXIT_IF(pthread_mutex_init(&MUTEX, NULL) != 0);
-    tpool_t* pool = calloc(1, sizeof(tpool_t));
-    EXIT_IF(pool == NULL);
-    EXIT_IF(!tpool_set(pool, worker, N_THREADS));
-    T* data = calloc(N_ITEMS, sizeof(T));
-    EXIT_IF(data == NULL);
-    for (size_t i = 0; i < N_ITEMS; ++i) {
-        data[i] = (T)i;
-    }
-    for (size_t j = 0; j < 2; ++j) {
-        for (size_t i = 0; i < N_ITEMS; ++i) {
-            EXIT_IF(!tpool_work_enqueue(pool, &data[i]))
+    Memory* memory = calloc(1, sizeof(Memory));
+    EXIT_IF(memory == NULL);
+    {
+        TPool*   pool = &memory->pool;
+        Payload* payloads = memory->payloads;
+        EXIT_IF(tpool_set(pool, thread_fn, N_THREADS) == FALSE);
+        for (u8 i = 0; i < N_PAYLOADS; ++i) {
+            payloads[i].value = (u8)i;
+        }
+        for (u8 i = 0; i < N_PAYLOADS; ++i) {
+            EXIT_IF(tpool_work_enqueue(pool, &payloads[i]) == FALSE)
         }
         tpool_wait(pool);
+        for (u8 i = 0; i < N_PAYLOADS; ++i) {
+            printf("%hhu\n", payloads[i].value);
+        }
+        tpool_clear(pool);
     }
-    for (size_t i = 0; i < N_ITEMS; ++i) {
-        printf("%hu\n", data[i]);
-    }
-    tpool_clear(pool);
-    free(pool);
-    free(data);
+    free(memory);
     return EXIT_SUCCESS;
 }

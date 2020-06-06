@@ -1,29 +1,40 @@
 #ifndef __TPOOL_H__
 #define __TPOOL_H__
 
-#include <stdbool.h>
+typedef unsigned char u8;
+typedef unsigned long u64;
 
-#define CAPACITY 33
+typedef pthread_cond_t  ThreadCond;
+typedef pthread_mutex_t ThreadMutex;
 
-typedef void (*thread_func_t)(void* arg);
+#define LOCK_OR_EXIT(mutex)   EXIT_IF(pthread_mutex_lock(&mutex) != 0);
+#define UNLOCK_OR_EXIT(mutex) EXIT_IF(pthread_mutex_unlock(&mutex) != 0);
+
+typedef enum {
+    FALSE = 0,
+    TRUE,
+} Bool;
+
+#define CAPACITY 64
+
+typedef void (*ThreadFn)(void*);
 
 typedef struct {
-    pthread_cond_t  enqueue_cond;
-    pthread_cond_t  dequeue_cond;
-    pthread_mutex_t mutex;
-    thread_func_t   func;
-    size_t          n_thread_active;
-    size_t          n_thread_total;
-    size_t          queue_len;
-    size_t          index;
-    bool            stop;
-    char            _[7];
-    void*           memory[CAPACITY];
-} tpool_t;
+    void*       memory[CAPACITY];
+    ThreadCond  enqueue_cond;
+    ThreadCond  dequeue_cond;
+    ThreadMutex mutex;
+    ThreadFn    fn;
+    u8          active_threads;
+    u8          total_threads;
+    u8          queue_len;
+    u8          index;
+    Bool        stop;
+} TPool;
 
-bool tpool_set(tpool_t* pool, const thread_func_t func, const size_t n);
-void tpool_clear(tpool_t* pool);
-bool tpool_work_enqueue(tpool_t* pool, void* arg);
-void tpool_wait(tpool_t* pool);
+Bool tpool_set(TPool*, const ThreadFn, const u8);
+void tpool_clear(TPool*);
+Bool tpool_work_enqueue(TPool*, void*);
+void tpool_wait(TPool*);
 
 #endif
