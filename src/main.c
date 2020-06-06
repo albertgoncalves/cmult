@@ -28,8 +28,10 @@ static void thread_fn(void* arg) {
     payload->value = (u8)(value + 100);
     usleep(10000);
     LOCK_OR_EXIT(MUTEX);
-    const u64 id = pthread_self();
-    printf("id: %lu\tin: %hhu\tout: %hhu\n", id, value, payload->value);
+    printf("in : \033[1m%4hhu\033[0m\t"
+           "out : \033[1m%4hhu\033[0m\n",
+           value,
+           payload->value);
     UNLOCK_OR_EXIT(MUTEX);
 }
 

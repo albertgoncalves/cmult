@@ -3,7 +3,9 @@
 
 typedef unsigned char u8;
 typedef unsigned long u64;
+typedef size_t        usize;
 
+typedef pthread_t       Thread;
 typedef pthread_cond_t  ThreadCond;
 typedef pthread_mutex_t ThreadMutex;
 

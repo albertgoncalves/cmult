@@ -84,7 +84,7 @@ Bool tpool_set(TPool* pool, const ThreadFn fn, const u8 total_threads) {
     pool->queue_len = 0;
     pool->index = 0;
     for (u8 i = 0; i < total_threads; ++i) {
-        pthread_t thread;
+        Thread thread;
         EXIT_IF(pthread_create(&thread, NULL, tpool_worker, pool) != 0);
         EXIT_IF(pthread_detach(thread) != 0);
     }
